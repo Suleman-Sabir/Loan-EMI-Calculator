@@ -1,46 +1,76 @@
 import streamlit as st
-import math
+from datetime import datetime
 
-st.set_page_config(page_title="Loan EMI Calculator", layout="centered")
+st.set_page_config(page_title="Attendance Tracker", layout="wide")
 
-# --- Header ---
-st.markdown("<h1 style='text-align: center; color: #4CAF50;'>💰 Loan EMI Calculator</h1>", unsafe_allow_html=True)
-st.markdown("<h4 style='text-align: center;'>Calculate your monthly loan repayment easily</h4>", unsafe_allow_html=True)
-st.write("")
+# --- Sidebar Navigation ---
+st.sidebar.title("🎓 Attendance Tracker")
+page = st.sidebar.radio("Go to", [
+    "🏠 Dashboard",
+    "➕ Add Student",
+    "📚 Add Subject",
+    "📝 Mark Attendance",
+    "📊 View Attendance",
+    "⬇️ Download Report"
+])
 
-# --- Input Fields ---
-st.sidebar.header("Enter Loan Details")
-loan_amount = st.sidebar.number_input("Loan Amount (PKR)", min_value=1000.0, step=1000.0, format="%.2f")
-interest_rate = st.sidebar.number_input("Annual Interest Rate (%)", min_value=0.0, step=0.1, format="%.2f")
-loan_term = st.sidebar.slider("Loan Term (in Years)", min_value=1, max_value=30, step=1)
+# --- Dashboard ---
+if page == "🏠 Dashboard":
+    st.title("📋 Attendance Tracker Dashboard")
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("📘 Total Subjects", "0")
+    with col2:
+        st.metric("👨‍🎓 Total Students", "0")
+    with col3:
+        st.metric("📝 Records Taken", "0")
+    st.markdown("---")
+    st.info("Use the sidebar to navigate between different sections of the Attendance Tracker.")
 
-# --- EMI Calculation Function ---
-def calculate_emi(principal, annual_rate, years):
-    monthly_rate = (annual_rate / 12) / 100
-    months = years * 12
+# --- Add Student ---
+elif page == "➕ Add Student":
+    st.title("➕ Add New Student")
+    col1, col2 = st.columns(2)
+    with col1:
+        student_id = st.text_input("Enter Student ID")
+    with col2:
+        student_name = st.text_input("Enter Student Name")
+    if st.button("Add Student"):
+        st.success(f"Student '{student_name}' with ID '{student_id}' added successfully!")
 
-    if monthly_rate == 0:
-        emi = principal / months
-    else:
-        emi = principal * monthly_rate * ((1 + monthly_rate) ** months) / ((1 + monthly_rate) ** months - 1)
+# --- Add Subject ---
+elif page == "📚 Add Subject":
+    st.title("📚 Add New Subject")
+    subject = st.text_input("Enter Subject Name")
+    if st.button("Add Subject"):
+        st.success(f"Subject '{subject}' added successfully!")
 
-    total_payment = emi * months
-    total_interest = total_payment - principal
+# --- Mark Attendance ---
+elif page == "📝 Mark Attendance":
+    st.title("📝 Mark Attendance")
+    st.date_input("Select Date", value=datetime.today())
+    subject = st.selectbox("Select Subject", ["Math", "Science", "English"])
+    st.markdown("### 👨‍🎓 Select Present Students")
+    students = ["Ali", "Sana", "Ahmed", "Zara"]
+    selected = st.multiselect("Mark Present", students)
+    if st.button("Submit Attendance"):
+        st.success("Attendance marked successfully!")
 
-    return round(emi, 2), round(total_payment, 2), round(total_interest, 2)
+# --- View Attendance ---
+elif page == "📊 View Attendance":
+    st.title("📊 View Attendance Records")
+    st.selectbox("Select Subject", ["Math", "Science", "English"])
+    st.date_input("Filter by Date")
+    st.markdown("#### Attendance Table (Preview Only)")
+    st.dataframe({
+        "Student": ["Ali", "Sana", "Ahmed"],
+        "Subject": ["Math", "Math", "Math"],
+        "Date": ["2025-07-17"]*3,
+        "Status": ["Present", "Absent", "Present"]
+    })
 
-# --- Calculation & Output ---
-if st.sidebar.button("Calculate EMI"):
-    if loan_amount > 0 and interest_rate >= 0 and loan_term > 0:
-        emi, total_payment, total_interest = calculate_emi(loan_amount, interest_rate, loan_term)
-
-        st.success("📊 EMI Calculation Results")
-        st.markdown(f"""
-        <div style="background-color: #f0f9f0; padding: 15px; border-radius: 10px;">
-            <h3 style="color: #2e7d32;">Monthly EMI: PKR {emi:,.2f}</h3>
-            <h4>Total Payment: PKR {total_payment:,.2f}</h4>
-            <h4>Total Interest: PKR {total_interest:,.2f}</h4>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.error("Please enter valid loan details.")
+# --- Download Report ---
+elif page == "⬇️ Download Report":
+    st.title("⬇️ Download Attendance Report")
+    st.info("Click below to download the attendance report (demo button).")
+    st.download_button("📥 Download CSV", data="Name,Subject,Date,Status", file_name="report.csv")
